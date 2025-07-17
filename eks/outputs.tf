@@ -9,3 +9,7 @@ output "ca_data" {
 output "name" {
   value = aws_eks_cluster.eks.name
 }
+
+output "alb_sg" {
+  value = aws_security_group.alb
+}
