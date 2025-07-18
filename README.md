@@ -1,18 +1,24 @@
-# Infrastructure as Code (IaC) Terraform Modules
+# BreakWater Technology Infrastructure as Code (IaC) Terraform Modules
 
 This repository contains reusable Terraform modules for provisioning AWS infrastructure in a version-controlled manner.
-`Latest version: v1.4.1`
+`Latest version: v1.4.2`
 
 ## Modules
 
-- **VPC**: 
-  - Creates a Virtual Private Cloud with public and private subnets, route tables, NAT Gateway, and Internet Gateway.
-  - Adding EKS required tags to the subnets.
+- **VPC**: Creates a Virtual Private Cloud with public and private subnets, route tables, NAT Gateway, Internet Gateway and adding EKS required tags to the subnets.
+  - Will create private subnets and public subnets in different AZ. It dynamically provisions the number of subnets based on the value we provide. (in this example, 4 subnets. Max 4) 4. Subnet CIDR calculation is done using the terraform function cidrsubnet()
+  - AZ selection is also done using the modulus terraform operator.
+  - Routing tables will be created (private, public)
+  - NAT GW to route private instance traffic to the internet. 
+  - Available AZs in the region will be retrieved using a data block. 
 
-- **EKS**: 
-  - Provisions EKS cluster, worker nodes and ALB SG to host Application workload.
-  - Setup EKS cluster add-ons: kube-proxy, pod-identity, vpc-cni, core-dns, external-dns.
-  - Installs AWS Loadbalancer Controller.
+- **EKS**: Provisions EKS cluster, worker nodes and ALB Security Group to host Application workload.
+  - Uses AWS managed instances to run the workloads
+  - AWS Graviton instances (t4g.medium) are using as it offer a balance of performance and cost-effectiveness
+  - Amazon Linux 2023 ARM64 based AMI is used as Graviton instances runs on ARM64 platform
+  - Setup EKS cluster add-ons: kube-proxy, pod-identity, vpc-cni, core-dns, external-dns
+  - Installs AWS Loadbalancer Controller. AWS LBC will handle the ALB creation and exposing the application
+  - Creates ALB Security group with port 443, 80 from 0.0.0.0/0
 
 - **DNS**:
   - Creates a Public Hosted Zone for the domain in Route53.
@@ -24,12 +30,11 @@ This repository contains reusable Terraform modules for provisioning AWS infrast
 ## Usage
 
 Each module can be integrated into Terraform configuration by specifying its source. 
-Example:
 
 ```hcl
 module "eks" {
 
-  source = "git::https://github.com/sarithekanayake/bwt-tf-modules.git//eks?ref=v1.4.1"
+  source = "git::https://github.com/sarithekanayake/bwt-tf-modules.git//eks?ref=v1.4.2"
 
   env                =  "prod"
   vpc_id             =  "vpc-0123456789abcdefg"
