@@ -7,4 +7,3 @@ variable "eks_version" {}
 variable "desired_size" {}
 variable "max_size" {}
 variable "min_size" {}
-variable "aws_lbc_version" {}

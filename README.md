@@ -1,7 +1,7 @@
 # BreakWater Technology Infrastructure as Code (IaC) Terraform Modules
 
 This repository contains reusable Terraform modules for provisioning AWS infrastructure in a version-controlled manner.
-`Latest version: v1.4.2`
+`Latest version: v1.5.0`
 
 ## Modules
 
@@ -14,10 +14,11 @@ This repository contains reusable Terraform modules for provisioning AWS infrast
 
 - **EKS**: Provisions EKS cluster, worker nodes and ALB Security Group to host Application workload.
   - Uses AWS managed instances to run the workloads
-  - AWS Graviton instances (t4g.medium) are using as it offer a balance of performance and cost-effectiveness
+  - AWS Graviton instances (t4g.small) are using as it offer a balance of performance and cost-effectiveness
   - Amazon Linux 2023 ARM64 based AMI is used as Graviton instances runs on ARM64 platform
   - Setup EKS cluster add-ons: kube-proxy, pod-identity, vpc-cni, core-dns, external-dns
   - Installs AWS Loadbalancer Controller. AWS LBC will handle the ALB creation and exposing the application
+  - Installs Kubernetes Cluster Autoscaler. AWS uses an Auto Scaling Group to manage the worker nodes. Based on the resource consumption of the nodes, the Cluster Autoscaler automatically scales the number of worker nodes in or out.
   - Creates ALB Security group with port 443, 80 from 0.0.0.0/0
 
 - **DNS**:
@@ -34,7 +35,7 @@ Each module can be integrated into Terraform configuration by specifying its sou
 ```hcl
 module "eks" {
 
-  source = "git::https://github.com/sarithekanayake/bwt-tf-modules.git//eks?ref=v1.4.2"
+  source = "git::https://github.com/sarithekanayake/bwt-tf-modules.git//eks?ref=v1.5.0"
 
   env                =  "prod"
   vpc_id             =  "vpc-0123456789abcdefg"
@@ -48,8 +49,6 @@ module "eks" {
   desired_size       =  2
   max_size           =  5
   min_size           =  1
-
-  aws_lbc_version    = "1.9.2"
 
 }
 ```

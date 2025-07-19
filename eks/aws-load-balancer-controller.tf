@@ -15,7 +15,7 @@ data "aws_iam_policy_document" "lbc" {
 }
 
 resource "aws_iam_role" "lbc" {
-  name               = "${aws_eks_cluster.eks.name}-aws-lbc"
+  name               = "AWSLoadBalancerControllerRole"
   assume_role_policy = data.aws_iam_policy_document.lbc.json
 }
 
@@ -37,7 +37,7 @@ resource "helm_release" "lbc" {
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
-  version    = "1.9.2"
+  version    = "1.13.3"
 
   set = [
     {
@@ -57,8 +57,7 @@ resource "helm_release" "lbc" {
 }
 
 resource "aws_iam_policy" "lbc" {
-  name   = "AWSLoadBalancerController"
-  # policy = file("./iam-policies/lbc.json")
+  name   = "AWSLoadBalancerControllerPolicy"
   policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [

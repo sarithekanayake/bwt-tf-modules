@@ -1,3 +1,7 @@
+#------------------------
+# EKS common ad-ons
+#------------------------
+
 resource "aws_eks_addon" "kube-proxy" {
   cluster_name = aws_eks_cluster.eks.name
   addon_name   = "kube-proxy"
@@ -8,11 +12,31 @@ resource "aws_eks_addon" "kube-proxy" {
 resource "aws_eks_addon" "pod-identity" {
   cluster_name = aws_eks_cluster.eks.name
   addon_name   = "eks-pod-identity-agent"
-  addon_version = "v1.1.0-eksbuild.1"
+  addon_version = "v1.3.8-eksbuild.2"
 
   depends_on = [ aws_eks_addon.kube-proxy ]
 }
 
+resource "aws_eks_addon" "core-dns" {
+  cluster_name = aws_eks_cluster.eks.name
+  addon_name   = "coredns"
+  addon_version = "v1.12.2-eksbuild.4"
+
+  depends_on = [ aws_eks_addon.vpc-cni ]
+}
+
+resource "aws_eks_addon" "metrics-server" {
+  cluster_name = aws_eks_cluster.eks.name
+  addon_name   = "metrics-server"
+  addon_version = "v0.8.0-eksbuild.1"
+
+  depends_on = [ aws_eks_addon.vpc-cni ]
+}
+
+
+#------------------------
+# VPC-CNI Ad-on
+#------------------------
 
 resource "aws_iam_role" "vpc_cni" {
   name               = "AmazonEKSPodIdentityAmazonVPCCNIRole"
@@ -41,7 +65,7 @@ resource "aws_iam_role_policy_attachment" "vpc_cni" {
 resource "aws_eks_addon" "vpc-cni" {
   cluster_name = var.eks_name
   addon_name   = "vpc-cni"
-  addon_version = "v1.19.5-eksbuild.1"
+  addon_version = "v1.19.6-eksbuild.7"
   pod_identity_association {
     role_arn = aws_iam_role.vpc_cni.arn
     service_account = "aws-node"
@@ -50,24 +74,11 @@ resource "aws_eks_addon" "vpc-cni" {
   
 }
 
-resource "aws_eks_addon" "core-dns" {
-  cluster_name = aws_eks_cluster.eks.name
-  addon_name   = "coredns"
-  addon_version = "v1.12.1-eksbuild.2"
 
-  depends_on = [ aws_eks_addon.vpc-cni ]
-}
+#------------------------
+# External DNS Ad-on
+#------------------------
 
-resource "aws_eks_addon" "metrics-server" {
-  cluster_name = aws_eks_cluster.eks.name
-  addon_name   = "metrics-server"
-  addon_version = "v0.8.0-eksbuild.1"
-
-  depends_on = [ aws_eks_addon.vpc-cni ]
-}
-
-
-##### External DNS Ad-on #############
 resource "aws_iam_role" "ex_dns" {
   name               = "AmazonEKSPodIdentityExternalDNSRole"
   assume_role_policy = jsonencode({
